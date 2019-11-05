@@ -1,0 +1,27 @@
+---
+- name: change timezone as JST
+  copy:
+    src: /usr/share/zoneinfo/Japan
+    dest: /etc/localtime
+    remote_src: yes
+
+- name: check whether /etc/sysconfig/clock exist or not
+  stat:
+    path: /etc/sysconfig/clock
+  register: stat_sysconfig_clock
+
+- name: set timezone as JST
+  replace:
+    path: /etc/sysconfig/clock
+    regexp: ^ZONE\s*=\s*"UTC"
+    replace: ZONE="Asia/Tokyo"
+  when: stat_sysconfig_clock.stat.exists
+
+- name: set timezone as JST
+  template:
+    src: clock.j2
+    dest: /etc/sysconfig/clock
+    owner: root
+    group: root
+    mode: 0644
+  when: not stat_sysconfig_clock.stat.exists
